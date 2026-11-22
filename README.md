@@ -258,6 +258,18 @@ python -m PyInstaller --noconfirm --clean ReconifyX.spec
 见 [`CONTRIBUTING.md`](CONTRIBUTING.md)。安全问题请走 [`SECURITY.md`](SECURITY.md) 的
 私下渠道，不要开公开 issue。
 
+## 贡献者
+
+本项目是人机协作的产物，参与方如实署名：
+
+| 贡献者 | 参与内容 |
+|---|---|
+| Claude Code | 0.1.0 原型：最初的实现与思路 |
+| [DeepSeek](https://www.deepseek.com/) | 1.0.0 重写：管线加固、离线测试补齐、打包与发布准备 |
+| [xiaoqilin711](https://github.com/xiaoqilin711) | 共同参与 |
+
+维护者：[Cat-liko](https://github.com/Cat-liko)。
+
 ## 许可证
 
 [AGPL-3.0](LICENSE)。如果你把它作为网络服务提供给他人使用，也需要开源你的修改。
