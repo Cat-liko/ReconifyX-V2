@@ -13,8 +13,8 @@
 
 **不要开公开 issue。** 请通过以下任一渠道联系维护者：
 
-- GitHub Security Advisories（仓库 → Security → Report a vulnerability）
-- 邮件：见仓库 profile / commit 署名中的维护者邮箱
+- **首选**：GitHub Security Advisories（仓库 → Security → Report a vulnerability）
+- 邮件：见 GitHub 个人主页（Profile）公开的联系方式；未公开时请只用上面这条渠道
 
 请在报告里尽量包含：
 

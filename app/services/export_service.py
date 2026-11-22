@@ -349,7 +349,8 @@ def render_markdown(payload: Dict[str, Any]) -> str:
     lines.append("---")
     lines.append("")
     lines.append(
-        "由 [ReconifyX](https://github.com/) 生成。请仅对已授权的目标使用本工具。"
+        "由 [ReconifyX](https://github.com/Cat-liko/ReconifyX-V2) 生成。"
+        "请仅对已授权的目标使用本工具。"
     )
     lines.append("")
     return "\n".join(lines)

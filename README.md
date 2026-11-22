@@ -85,7 +85,7 @@ CLI 默认返回非零退出码（`--allow-degraded` 可放行），方便 CI �
 
 ```bash
 # A. 源码运行（推荐开发）
-git clone <this repo> && cd ReconifyX
+git clone https://github.com/Cat-liko/ReconifyX-V2.git && cd ReconifyX-V2
 python -m pip install -r requirements.txt
 python -m reconifyx serve
 
@@ -97,8 +97,9 @@ docker build -t reconifyx:local .
 docker run --rm -p 8000:8000 -v "$PWD/res:/data" reconifyx:local
 # 或：docker compose up
 
-# D. Windows 单文件 exe
-build_exe.bat          # 产物：dist\ReconifyX.exe
+# D. Windows 单文件 exe（无需 Python）
+#    直接下载：https://github.com/Cat-liko/ReconifyX-V2/releases
+build_exe.bat          # 自行构建：产物 dist\ReconifyX.exe
 ```
 
 Windows 用户也可以直接双击 `start.bat`（首次运行会自动装依赖）。

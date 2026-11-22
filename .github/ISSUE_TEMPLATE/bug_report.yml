@@ -8,7 +8,7 @@ body:
       value: |
         ## 提交前请先确认
 
-        - 已搜索[现有 Issue](https://github.com/OWNER/ReconifyX/issues)，避免重复提交。
+        - 已搜索[现有 Issue](https://github.com/Cat-liko/ReconifyX-V2/issues)，避免重复提交。
         - 已尝试用最新版本（源码或 Release 里的 exe）复现。
         - 本工具只用于**你拥有所有权或已获授权**的目标；请勿在 Issue 中粘贴真实目标数据。
         - **日志务必脱敏**：删除 `CERTSPOTTER_TOKEN`、`FOFA_PASSWORD` 等密钥，以及内网 IP、真实域名等敏感信息。

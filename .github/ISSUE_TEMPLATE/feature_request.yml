@@ -8,7 +8,7 @@ body:
       value: |
         ## 提交前请先确认
 
-        - 已搜索[现有 Issue](https://github.com/OWNER/ReconifyX/issues) 与 Discussions，避免重复。
+        - 已搜索[现有 Issue](https://github.com/Cat-liko/ReconifyX-V2/issues) 与 Discussions，避免重复。
         - 本项目的定位是**本地自部署的授权攻击面管理（ASM）**，不接收绕过授权、批量爆破、
           漏洞利用一类的功能请求。
 

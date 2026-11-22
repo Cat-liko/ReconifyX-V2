@@ -61,10 +61,10 @@ dev = [
 reconifyx = "reconifyx.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/OWNER/reconifyx"
-Documentation = "https://github.com/OWNER/reconifyx#readme"
-Issues = "https://github.com/OWNER/reconifyx/issues"
-Changelog = "https://github.com/OWNER/reconifyx/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/Cat-liko/ReconifyX-V2"
+Documentation = "https://github.com/Cat-liko/ReconifyX-V2#readme"
+Issues = "https://github.com/Cat-liko/ReconifyX-V2/issues"
+Changelog = "https://github.com/Cat-liko/ReconifyX-V2/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
 # `app` 是内部实现包(名字太通用,不适合作为分发名),`reconifyx` 只放命令行入口。
