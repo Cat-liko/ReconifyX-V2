@@ -22,6 +22,10 @@ python -m reconifyx scan example.com -p ultra --md report.md
   <img alt="No API keys" src="https://img.shields.io/badge/API%20keys-not%20required-success">
 </p>
 
+> Initiated by [Cat-liko](https://github.com/Cat-liko), built in collaboration with
+> **Claude Code** and **DeepSeek**. Contributors and the GitHub avatar-list rules are
+> documented in [`CONTRIBUTORS.md`](CONTRIBUTORS.md).
+
 ---
 
 ## ⚠️ Authorized testing only
