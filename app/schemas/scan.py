@@ -101,6 +101,9 @@ class DnsIntel(BaseModel):
     soa: Optional[str] = Field(None, description="SOA 记录摘要")
     has_spf: bool = Field(False, description="TXT 中是否存在 SPF 记录")
     has_dmarc: bool = Field(False, description="_dmarc 是否存在 DMARC 记录")
+    null_mx: bool = Field(
+        False, description="是否存在 RFC 7505 null MX(`0 .`):该域声明不接收邮件"
+    )
     resolved: bool = Field(False, description="A/AAAA 是否有任一解析结果")
     error: Optional[str] = Field(None, description="整体查询失败原因(单类记录失败不算)")
 

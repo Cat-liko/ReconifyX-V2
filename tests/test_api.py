@@ -324,6 +324,9 @@ async def test_api_key_is_enforced_when_configured(monkeypatch):
         denied = await c.get("/scan/whatever")
         assert denied.status_code == 401
         assert "X-API-Key" in denied.json()["message"]
+        # RFC 7235:401 必须告诉客户端用哪个 scheme 重试
+        assert "apikey" in denied.headers.get("www-authenticate", "").lower()
+        assert "x-api-key" in denied.headers.get("www-authenticate", "").lower()
 
         allowed = await c.get("/scan/whatever", headers={"X-API-Key": "topsecret"})
         assert allowed.status_code == 404  # 过了鉴权,只是 job 不存在

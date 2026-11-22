@@ -40,6 +40,8 @@
   同时立刻可重试。之前完全不缓存，导致故障期间同一域名的每次请求都要重打上游。
 - `/debug/scan` 对未知计划返回 `400`（此前返回 `200` + `unavailable` 载荷，脚本会当成成功）。
 - 任务状态改为"先落盘/写历史，最后才置 completed"，避免客户端看到 completed 却读不到 `saved_path`。
+- TLS 面板区分"未取到证书（握手超时/连接失败）"与"证书验证失败"：前者不是安全发现，
+  不应读起来像一张不合格的证书。
 
 ### Fixed
 
@@ -67,6 +69,27 @@
 - **`ScanData` 允许额外字段**：Pro 结果被 Union 误判成 ScanData 时会静默丢字段，现为 `extra="forbid"`。
 - **`datetime.utcnow()` / `utcfromtimestamp()` 已废弃**。
 - `.env.example` 里的占位 token 会让 CertSpotter 返回 401 并把整次扫描标成降级。
+- **中文输出在非 CJK 环境的终端里直接崩溃**：stdout 是管道/文件时 Python 用 locale 编码，
+  英文 Windows 上 `reconifyx --help | more` 会抛 `UnicodeEncodeError` 带 traceback 退出。
+  现在非终端流强制 UTF-8 + `errors="replace"`（重定向出来的文件也终于是 UTF-8 了），
+  并顺手把重定向流的全缓冲改成行缓冲 —— 否则 `serve > log.txt` 里的地址会一直卡在缓冲区。
+- **`--json -` / `--csv -` 的输出不是纯文档**：人类可读摘要会一起打到 stdout，管道给 `jq`
+  必然解析失败（注释写着"写 stdout 时不打印摘要"，但摘要在判断导出之前就打了）。
+  现在只要有一个格式走 stdout，摘要就让路；两个格式同时走 stdout 直接按用法错误拒绝。
+- **`httpx` 每条请求刷一行 INFO**：一次 Ultra 扫描能有上千行 `HTTP Request: GET ...`，
+  淹没 CLI 的 stderr 与服务端日志。现默认压到 WARNING，`LOG_LEVEL=debug` 时再放开。
+- **RFC 7505 的 null MX 被渲染成裸 `0`**：`MX 0 .` 的 exchange 是根域 `.`，被 `rstrip(".")`
+  吃成空串后只剩一个 `0`，看着像"没有 MX 记录"，语义正好相反。现保留 `0 .` 并新增
+  `dns.null_mx` 字段，CLI 与 WebUI 都会明确标注"该域声明不接收邮件"。
+- **"可伪造邮件域"漏掉主域**：只统计 `spoofable_subdomains`，于是 `badssl.com` 这类
+  "主域可伪造、子域干净"的目标显示 0，与同一份数据里的 `primary.is_spoofable=true` 自相矛盾。
+- **401 没有 `WWW-Authenticate`**：RFC 7235 要求 401 告知认证方案，现返回
+  `ApiKey realm="reconifyx", header="X-API-Key"`。
+- **CLI `serve` 仍是 check-then-bind**：桌面模式早已改成"先 bind 再交给 uvicorn"，
+  命令行这条路却还是让 uvicorn 自己 bind，且默认端口被占时直接退出。现两条路共用
+  `app/core/net.py`：`--port` 显式给出时撞车就明确报错，未给出时依次退让到空闲端口。
+- **浅色主题里原生控件还是深色**：缺 `color-scheme`，于是浅色背景下出现深色滚动条和
+  "看着像已勾选"的深色复选框。现明暗主题各自声明 `color-scheme`。
 
 ### Security
 

@@ -25,6 +25,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 from uuid import uuid4
 
+from app.core.console import ensure_safe_streams
+
 #: 退出码:脚本据此判断结果,不要用 1 表示"扫到了风险" —— 那和"出错了"混在一起。
 EXIT_OK = 0
 EXIT_ERROR = 1
@@ -119,7 +121,11 @@ def _print_summary(
         _kv("可接管", count, p, "critical" if count else None)
     email = result.get("email_audit") or {}
     if email:
-        count = email.get("spoofable_subdomains", 0)
+        # 主域也要算进去:badssl.com 这类"主域可伪造、子域干净"的目标,
+        # 只数 spoofable_subdomains 会显示 0,和它自己 email_audit 里的
+        # primary.is_spoofable=true 直接矛盾。
+        primary_spoof = bool((email.get("primary") or {}).get("is_spoofable"))
+        count = (email.get("spoofable_subdomains", 0) or 0) + (1 if primary_spoof else 0)
         _kv("可伪造邮件域", count, p, "warn" if count else None)
     risk = result.get("risk") or {}
     if risk:
@@ -181,6 +187,8 @@ def _print_summary(
         if dns.get("caa"):
             flags.append("CAA")
         print("  记录   " + (", ".join(flags) if flags else p("无 SPF/DMARC/CAA", "yellow")))
+        if dns.get("null_mx"):
+            print(p("  Null MX 该域声明不接收邮件(RFC 7505)", "dim"))
 
     # ---- 数据源 ----
     if sources:
@@ -203,6 +211,18 @@ def _do_scan(args: argparse.Namespace) -> int:
     from app.services import export_service
 
     p = _Painter(_use_color(args))
+
+    # 导出目标先看:有任何一个落到 stdout 时,人类可读的摘要必须让路,
+    # 否则 `reconifyx scan x --json - | jq` 拿到的是"报告 + JSON",不是 JSON。
+    # (原来的写法先打摘要再判断导出,注释写着"不打印摘要",行为却是反的。)
+    targets = (args.json, args.csv, args.md)
+    to_stdout = [fmt for fmt, t in zip(("json", "csv", "md"), targets) if t == "-"]
+    if len(to_stdout) > 1:
+        print(
+            f"error: only one format can go to stdout, got {', '.join(to_stdout)}",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
 
     started = time.time()
     try:
@@ -232,7 +252,8 @@ def _do_scan(args: argparse.Namespace) -> int:
         elapsed_ms=int((finished - started) * 1000),
     )
 
-    if not args.quiet:
+    # stdout 上有导出内容时,摘要让路(判定已在扫描前做过)
+    if not args.quiet and not to_stdout:
         _print_summary(payload, sources, p)
 
     # ---- 导出 ----
@@ -348,6 +369,9 @@ def _do_dns(args: argparse.Namespace) -> int:
         + (p("CAA", "green") if intel.caa else p("no CAA", "yellow"))
         + ("  " + p("resolved", "dim") if intel.resolved else "  " + p("no A/AAAA", "red"))
     )
+    # 单独一行,否则只有一行 "MX 0 ." 时没人看得懂那个点是什么意思
+    if getattr(intel, "null_mx", False):
+        print(p("  Null MX:该域声明不接收邮件(RFC 7505)", "dim"))
     return EXIT_OK
 
 
@@ -355,10 +379,10 @@ def _do_serve(args: argparse.Namespace) -> int:
     import uvicorn
 
     from app.core.config import get_settings
+    from app.core.net import PREFERRED_PORTS, bind_or_explain
 
     settings = get_settings()
     host = args.host or settings.HOST
-    port = args.port or settings.PORT
 
     if host not in ("127.0.0.1", "localhost", "::1") and not settings.API_KEY:
         print(
@@ -368,17 +392,49 @@ def _do_serve(args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
 
+    if args.reload:
+        # --reload 是开发用:uvicorn 需要自己管理进程与 socket,不能把
+        # 预先 bind 好的 socket 塞给它。这里退回最朴素的方式。
+        port = args.port or settings.PORT
+        print(f"{_project_name()} v{_version()} → http://{host}:{port}/  (reload)")
+        try:
+            uvicorn.run(
+                "app.main:app",
+                host=host,
+                port=port,
+                log_level=args.log_level,
+                reload=True,
+            )
+        except KeyboardInterrupt:
+            return EXIT_OK
+        return EXIT_OK
+
+    # 与桌面模式(双击 exe)走同一条路径:先 bind 成功,再把同一个 socket
+    # 交给 uvicorn,彻底避免 check-then-bind 竞态。
+    # --port 显式给出时不做退让(占不到就直接报错,免得用户对着错误的地址调试)。
+    fallback = tuple(dict.fromkeys((settings.PORT, *PREFERRED_PORTS)))
+    try:
+        sock = bind_or_explain(host, args.port, fallback)
+    except OSError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return EXIT_ERROR
+
+    port = sock.getsockname()[1]
     print(f"{_project_name()} v{_version()} → http://{host}:{port}/")
     try:
-        uvicorn.run(
-            "app.main:app",
-            host=host,
-            port=port,
-            log_level=args.log_level,
-            reload=args.reload,
+        from app.main import app as asgi_app
+
+        config = uvicorn.Config(
+            asgi_app, log_level=args.log_level, access_log=False
         )
+        uvicorn.Server(config).run(sockets=[sock])
     except KeyboardInterrupt:
         return EXIT_OK
+    finally:
+        try:
+            sock.close()
+        except OSError:
+            pass
     return EXIT_OK
 
 
@@ -471,6 +527,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     """CLI 入口。返回退出码(不直接 sys.exit,便于测试与作为库调用)。"""
+    # 必须在 argparse 打印帮助之前:否则 `--help | more` 在英文 Windows
+    # 上会因为 locale 编不出中文而抛 UnicodeEncodeError。见 app/core/console.py
+    ensure_safe_streams()
+
     parser = build_parser()
     args = parser.parse_args(list(argv) if argv is not None else None)
     try:

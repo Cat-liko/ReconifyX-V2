@@ -24,44 +24,18 @@ import time
 import webbrowser
 from typing import List, Optional, Sequence
 
+# 端口占用的实现放在 app/core/net.py:CLI 的 `serve` 与桌面模式共用同一套
+# "先 bind 成功、再把同一个 socket 交给 uvicorn" 的逻辑,避免两边行为不一致
+# (一边没有 check-then-bind 竞态、另一边有,是这次修 bug 时发现的)。
+from app.core.net import PREFERRED_PORTS, pick_socket
+
 HOST = "127.0.0.1"
-PREFERRED_PORTS = (8000, 8001, 8002, 8003)
 
 #: 顶层可见的子命令(其余参数一律按 ``serve`` 处理)
 CLI_COMMANDS = frozenset({"scan", "dns", "serve", "version"})
 
 #: 顶层选项:必须原样透传,不能补 ``serve`` 前缀(argparse 的子命令解析器不认识它们)
 TOP_LEVEL_FLAGS = frozenset({"-h", "--help", "--version"})
-
-
-def _try_bind(host: str, port: int) -> Optional[socket.socket]:
-    """尝试占住一个 socket。成功返回已 listen 的 socket,失败返回 None。
-
-    刻意**不设** ``SO_REUSEADDR``:在 Windows 上它允许绑定到别人正在监听的端口
-    (端口劫持),对本地服务来说这个"便利"是纯粹的风险。
-    """
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        sock.bind((host, port))
-        sock.listen(128)
-        return sock
-    except OSError:
-        sock.close()
-        return None
-
-
-def pick_socket(host: str = HOST, ports: Sequence[int] = PREFERRED_PORTS) -> socket.socket:
-    """按首选端口顺序占一个 socket;全都占不到时让系统随机分配。"""
-    for port in ports:
-        sock = _try_bind(host, port)
-        if sock is not None:
-            return sock
-    sock = _try_bind(host, 0)
-    if sock is None:
-        raise RuntimeError(
-            f"cannot bind any port on {host}; check firewall/permissions"
-        )
-    return sock
 
 
 def _open_browser_when_ready(port: int, timeout: float = 20.0) -> None:
@@ -112,6 +86,12 @@ def serve(open_browser: bool = True, ports: Sequence[int] = PREFERRED_PORTS) -> 
 
 def main(argv: Optional[List[str]] = None) -> int:
     """入口。返回退出码。"""
+    # 桌面模式的启动横幅是中文的;先修好编码,否则英文 Windows 上
+    # 重定向/管道会直接抛 UnicodeEncodeError。见 app/core/console.py
+    from app.core.console import ensure_safe_streams
+
+    ensure_safe_streams()
+
     args = list(sys.argv[1:] if argv is None else argv)
 
     # --- 子命令 / 选项:交给 CLI ---

@@ -17,7 +17,7 @@ python -m reconifyx scan example.com -p ultra --md report.md
   <img alt="Python" src="https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white">
   <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-async-009688?logo=fastapi&logoColor=white">
   <img alt="License" src="https://img.shields.io/badge/license-AGPL--3.0-blue">
-  <img alt="Tests" src="https://img.shields.io/badge/tests-254%20passed-brightgreen">
+  <img alt="Tests" src="https://img.shields.io/badge/tests-284%20passed-brightgreen">
   <img alt="No API keys" src="https://img.shields.io/badge/API%20keys-not%20required-success">
 </p>
 
@@ -199,7 +199,7 @@ print(data.total_found, data.total_live, data.risk.risk_score)
 ```bash
 python -m pip install -r requirements-dev.txt
 
-python -m pytest -q                  # 254 个测试，全部离线
+python -m pytest -q                  # 284 个测试，全部离线
 python -m ruff check .               # 规则集见 ruff.toml（刻意选窄：E/W/F/I）
 python -m pyflakes app launcher.py reconifyx tests
 python -m compileall -q app reconifyx tests launcher.py

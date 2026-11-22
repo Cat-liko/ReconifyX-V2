@@ -559,8 +559,10 @@ function renderMetrics(job, data) {
   }
 
   if (data.email_audit) {
-    const n = data.email_audit.spoofable_subdomains || 0;
-    add('可伪造邮件域', fmtInt(n), 'Critical + Warning', n > 0 ? 'warn' : 'good');
+    // 主域可伪造也要算进来:只数子域会出现"徽章 0 / 详情页主域可被伪造"的自相矛盾
+    const primarySpoof = data.email_audit.primary && data.email_audit.primary.is_spoofable ? 1 : 0;
+    const n = (data.email_audit.spoofable_subdomains || 0) + primarySpoof;
+    add('可伪造邮件域', fmtInt(n), primarySpoof ? '含主域' : '子域', n > 0 ? 'warn' : 'good');
   }
 
   if (data.risk) {
@@ -770,8 +772,22 @@ function panelSubdomains(data) {
   return box;
 }
 
+// 有没有真正拿到证书:握手超时 / 连接被拒时 not_after 是空的。
+// "拿不到证书"和"证书验不过"是两个完全不同的结论,不能都叫"验证失败"。
+function tlsObtained(tls) {
+  return Boolean(tls && tls.not_after);
+}
+
+function tlsVerdict(tls) {
+  if (!tlsObtained(tls)) return pill('未取到', 'muted');
+  return tls.verified ? pill('通过', 'ok') : pill('失败', 'critical');
+}
+
 function tlsCell(tls) {
   if (!tls) return { text: '-', cls: 'nowrap' };
+  if (!tlsObtained(tls)) {
+    return { text: '未取到', cls: 'nowrap', title: tls.error || 'handshake failed' };
+  }
   if (tls.error && !tls.verified) {
     return { text: '验证失败', cls: 'nowrap', title: tls.verification_error || tls.error };
   }
@@ -822,6 +838,15 @@ function panelDns(dns) {
       ['SPF', dns.has_spf ? pill('存在', 'ok') : pill('缺失', 'warning')],
       ['DMARC', dns.has_dmarc ? pill('存在', 'ok') : pill('缺失', 'warning')],
       ['CAA', (dns.caa || []).length ? pill('已限制签发', 'ok') : pill('未限制', 'warning')],
+      // RFC 7505:null MX(`0 .`)是"我明确不收邮件",与"压根没配 MX"是两回事
+      [
+        '邮件接收',
+        dns.null_mx
+          ? pill('Null MX · 声明不接收', 'ok')
+          : (dns.mx || []).length
+            ? pill('有 MX', 'muted')
+            : pill('未配置 MX', 'warning'),
+      ],
     ])
   );
   box.append(el('h2', null, '记录'));
@@ -917,7 +942,7 @@ function panelWeb(data) {
           const tls = a.tls;
           return [
             { text: a.host || a.url, cls: 'mono' },
-            tls.verified ? pill('通过', 'ok') : pill('失败', 'critical'),
+            tlsVerdict(tls),
             { text: tls.subject || '-', cls: 'mono' },
             { text: tls.issuer || '-', cls: 'mono' },
             { text: tls.not_after || '-', cls: 'mono nowrap' },

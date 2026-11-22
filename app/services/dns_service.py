@@ -18,7 +18,7 @@
 """
 
 import asyncio
-from typing import List, Optional
+from typing import List, Optional, Sequence
 
 import dns.asyncresolver
 import dns.exception
@@ -76,7 +76,12 @@ def _format(rdata, rtype: str) -> str:
     if rtype == "MX":
         pref = getattr(rdata, "preference", 0)
         exch = str(getattr(rdata, "exchange", "")).rstrip(".")
-        return f"{pref} {exch}".strip()
+        # RFC 7505 的 null MX 就是 `MX 0 .` —— exchange 是根域 ".",
+        # rstrip 之后成了空串,渲染出来只剩一个 "0",看着像"没有 MX 记录",
+        # 而实际含义正好相反:该域**明确声明**不接收邮件。保留那个点。
+        if not exch:
+            exch = "."
+        return f"{pref} {exch}"
     if rtype == "TXT":
         parts = getattr(rdata, "strings", None)
         if parts:
@@ -102,6 +107,15 @@ def _format(rdata, rtype: str) -> str:
             f"minimum={getattr(rdata, 'minimum', '')}"
         ).strip()
     return str(rdata)
+
+
+def has_null_mx(mx: Sequence[str]) -> bool:
+    """是否存在 RFC 7505 的 null MX(`0 .`)。
+
+    有它意味着该域**声明自己不接收邮件**,这跟"没配 MX"是两个不同的结论:
+    前者是刻意的防御姿态,后者通常是配置遗漏。
+    """
+    return any(entry.split(" ", 1)[-1] == "." for entry in mx)
 
 
 async def collect(domain: str, s: Settings) -> Optional[DnsIntel]:
@@ -145,5 +159,6 @@ async def collect(domain: str, s: Settings) -> Optional[DnsIntel]:
         soa=soa[0] if soa else None,
         has_spf=has_spf,
         has_dmarc=has_dmarc,
+        null_mx=has_null_mx(mx),
         resolved=bool(a or aaaa),
     )

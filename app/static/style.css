@@ -26,6 +26,11 @@
   --shadow: 0 10px 30px rgba(0, 0, 0, .35);
   --radius: 12px;
   --mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  /* 让原生控件(复选框、滚动条、下拉、输入框光标)跟着**本应用**的主题走,
+     而不是跟着操作系统的 prefers-color-scheme。少了这一行,浅色主题下页面上
+     会出现深色滚动条和"看着像已勾选"的深色复选框。 */
+  color-scheme: dark;
+  accent-color: var(--accent);
 }
 
 html[data-theme="light"] {
@@ -44,6 +49,7 @@ html[data-theme="light"] {
   --err: #dc2626;
   --info: #7c3aed;
   --shadow: 0 8px 24px rgba(22, 35, 58, .08);
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }

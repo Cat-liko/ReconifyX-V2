@@ -90,6 +90,13 @@ if not logging.getLogger().handlers:
         format="%(asctime)s %(levelname)-7s %(name)s: %(message)s",
     )
 
+# httpx / httpcore 默认每条请求打一条 INFO。一次 Ultra 扫描可能有上千次请求,
+# 这些"HTTP Request: GET ..."会淹没真正要看的东西(CLI 的 stderr、服务端日志都是)。
+# 协议层细节只在 LOG_LEVEL=debug 时才放开。
+if settings.LOG_LEVEL.upper() != "DEBUG":
+    for _noisy in ("httpx", "httpcore"):
+        logging.getLogger(_noisy).setLevel(logging.WARNING)
+
 # 后台刷新去重:同一缓存键同时只跑一个刷新任务,避免 stale 命中风暴打爆上游。
 # 注意这与 single-flight 是两道不同的闸:这里是"别开新任务",single-flight 是
 # "开了也合流"。两者叠加才能保证上游只会看到一次请求。
@@ -182,11 +189,16 @@ def _epoch_to_iso(ts: Optional[float]) -> Optional[str]:
     return datetime.fromtimestamp(ts, tz=timezone.utc).replace(tzinfo=None).isoformat() + "Z"
 
 
-def _error(status: int, message: str, **extra: Any) -> JSONResponse:
+def _error(
+    status: int,
+    message: str,
+    headers: Optional[Dict[str, str]] = None,
+    **extra: Any,
+) -> JSONResponse:
     """统一的错误响应体。前端与 CLI 都靠 ``message`` 字段拿人读文案。"""
     content: Dict[str, Any] = {"status": "error", "message": message}
     content.update(extra)
-    return JSONResponse(status_code=status, content=content)
+    return JSONResponse(status_code=status, content=content, headers=headers)
 
 
 # ==================== 缓存写入策略 ====================
@@ -725,9 +737,12 @@ async def _guard_middleware(request: Request, call_next):
     if requires_guard(path):
         if not api_key_ok(settings.API_KEY, request.headers.get("x-api-key")):
             METRICS.inc("reconifyx_auth_failed_total")
+            # RFC 7235:401 必须带 WWW-Authenticate,否则客户端不知道该用哪种
+            # 方案重试。这里用自定义 scheme,和 X-API-Key 头对上。
             return _error(
                 401,
                 "missing or invalid X-API-Key",
+                headers={"WWW-Authenticate": 'ApiKey realm="reconifyx", header="X-API-Key"'},
             )
         client = request.client.host if request.client else "unknown"
         if not _limiter.allow(client):
