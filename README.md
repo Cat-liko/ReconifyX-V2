@@ -1,5 +1,7 @@
 # ReconifyX
 
+[English](README.en.md) | **简体中文**
+
 **本地自部署的攻击面管理（ASM）工具**：输入一个域名，一次扫描给出子域名、存活资产、TLS 证书与安全响应头、SPF/DMARC 邮件伪造风险、子域名接管风险、风险总账，以及与上一次扫描的差异。
 
 > **Local, self-hosted attack surface management.** One domain in, one report out:
