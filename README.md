@@ -270,7 +270,8 @@ python -m PyInstaller --noconfirm --clean ReconifyX.spec
 | [DeepSeek](https://www.deepseek.com/) | 1.0.0 重写：管线加固、离线测试补齐、打包与发布准备 |
 | [xiaoqilin711](https://github.com/xiaoqilin711) | 共同参与 |
 
-维护者：[Cat-liko](https://github.com/Cat-liko)。
+维护者：[Cat-liko](https://github.com/Cat-liko)。完整的贡献记录与"如何把自己加进去"见
+[`CONTRIBUTORS.md`](CONTRIBUTORS.md)。
 
 ## 许可证
 

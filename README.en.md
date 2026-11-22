@@ -298,7 +298,8 @@ This project is a product of human–AI collaboration, credited honestly:
 | [DeepSeek](https://www.deepseek.com/) | 1.0.0 rewrite: pipeline hardening, offline test coverage, packaging and release prep |
 | [xiaoqilin711](https://github.com/xiaoqilin711) | Project participation |
 
-Maintainer: [Cat-liko](https://github.com/Cat-liko).
+Maintainer: [Cat-liko](https://github.com/Cat-liko). See [`CONTRIBUTORS.md`](CONTRIBUTORS.md)
+for the full record and how to add yourself.
 
 ## License
 
