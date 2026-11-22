@@ -1,0 +1,140 @@
+name: Bug 报告
+description: 报告 ReconifyX 的可复现缺陷（请先用最新版本确认问题仍存在）
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 提交前请先确认
+
+        - 已搜索[现有 Issue](https://github.com/OWNER/ReconifyX/issues)，避免重复提交。
+        - 已尝试用最新版本（源码或 Release 里的 exe）复现。
+        - 本工具只用于**你拥有所有权或已获授权**的目标；请勿在 Issue 中粘贴真实目标数据。
+        - **日志务必脱敏**：删除 `CERTSPOTTER_TOKEN`、`FOFA_PASSWORD` 等密钥，以及内网 IP、真实域名等敏感信息。
+
+  - type: input
+    id: version
+    attributes:
+      label: ReconifyX 版本
+      description: Release 版本号、git commit，或 exe 的文件名/构建日期。
+      placeholder: "例如 0.1.0 / commit 1a2b3c4 / ReconifyX.exe (2026-01-01 构建)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: 操作系统
+      options:
+        - Windows 10
+        - Windows 11
+        - Windows Server
+        - macOS
+        - Linux
+        - Docker / 容器
+        - 其他（请在“实际行为”里说明）
+    validations:
+      required: true
+
+  - type: dropdown
+    id: python_version
+    attributes:
+      label: Python 版本
+      description: 源码运行时选实际版本；直接用打包的 exe 时选“不适用（exe）”。
+      options:
+        - "3.10"
+        - "3.11"
+        - "3.12"
+        - "3.13"
+        - "3.14"
+        - 不适用（使用打包的 exe）
+        - 其他（请在“实际行为”里说明）
+    validations:
+      required: true
+
+  - type: dropdown
+    id: run_mode
+    attributes:
+      label: 运行方式
+      options:
+        - 源码 + uvicorn（python -m uvicorn app.main:app）
+        - 源码 + launcher.py
+        - 打包的 ReconifyX.exe
+        - Docker / docker compose
+        - 其他
+    validations:
+      required: true
+
+  - type: dropdown
+    id: plan
+    attributes:
+      label: 出问题的扫描计划
+      description: 选测出问题的那条路径；与计划无关时选“不适用”。
+      options:
+        - Basic（子域名发现）
+        - Pro（探活 + 邮件审计）
+        - Ultra（子域名接管）
+        - 不适用（启动/UI/配置问题）
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 按顺序写清最小复现路径，包括启动命令、请求的端点/参数、点击了哪些按钮。
+      placeholder: |
+        1. 启动：python -X utf8 -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+        2. 打开 http://127.0.0.1:8000
+        3. 输入 example.com，选择 Pro，点击开始
+        4. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+      description: 你预期发生什么？
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+      description: 实际发生了什么？有报错请粘贴完整 traceback；不要只写“不工作”。
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志 / 截图（已脱敏）
+      description: 粘贴相关日志片段、浏览器控制台报错或截图。**提交前请务必脱敏**：删除 token、密码、真实域名与内网地址。
+      render: shell
+      placeholder: "粘贴已脱敏的日志；没有可留空。"
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 补充信息
+      description: 环境变量取值（脱敏后）、依赖版本、网络环境等可能有帮助的信息。
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: compliance
+    attributes:
+      label: 合规声明（必选）
+      description: 缺少此确认的 Issue 会被直接关闭。
+      options:
+        - label: 我确认只对该目标拥有所有权或已获授权
+          required: true
+        - label: 我已删除日志中的密钥（token / 密码）与真实目标数据
+          required: true
+    validations:
+      required: true

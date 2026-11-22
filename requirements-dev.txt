@@ -1,0 +1,10 @@
+# 开发 / 测试依赖(运行时不依赖这些)
+-r requirements.txt
+pytest>=8
+pytest-asyncio>=0.23
+pyflakes>=3
+ruff>=0.5
+# 仅用于校验 .github/*.yml 与 docker-compose.yml 的语法(CI 里也用得上)
+pyyaml>=6
+# Python < 3.11 没有内置 tomllib,pytest 读 pyproject.toml 需要它
+tomli>=1.1; python_version < "3.11"

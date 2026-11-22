@@ -1,0 +1,21 @@
+# Docker 构建上下文裁剪：镜像里只需要 app/、requirements.txt 和 launcher.py。
+.git
+.github
+.gitignore
+.venv
+venv
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+**/*.pyc
+build
+dist
+res
+.env
+.env.*
+tests
+.pytest_cache
+.ruff_cache
+*.log
+Makefile

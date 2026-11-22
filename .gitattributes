@@ -1,0 +1,21 @@
+# 统一行尾,避免 Windows 提交 CRLF、Linux CI 拿到 CRLF 后 shell/py 出问题。
+#
+# 规则:仓库里一律存 LF,检出时按平台转换。
+#   - .bat 必须检出为 CRLF:cmd.exe 对 LF-only 的批处理在 if/goto 块里有已知问题。
+#   - .png 等二进制不做任何转换。
+* text=auto eol=lf
+
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.exe binary
+*.zip binary
+
+# 让 GitHub 语言统计不要被前端资源带偏
+*.css linguist-language=CSS

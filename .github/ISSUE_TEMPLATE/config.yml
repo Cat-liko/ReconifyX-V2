@@ -1,0 +1,11 @@
+# 关闭空白 Issue：统一走表单，避免缺少版本/复现步骤导致无法定位。
+# 注：本文件只是入口配置，不影响 CI。
+# TODO(开源前)：把下面两处 OWNER 替换为真实的 GitHub 组织/用户名。
+blank_issues_enabled: false
+contact_links:
+  - name: 安全漏洞（请走私密渠道）
+    url: https://github.com/OWNER/ReconifyX/security/advisories/new
+    about: 请勿在公开 Issue 中披露未修复的漏洞；请使用 GitHub 私密安全公告。
+  - name: 使用讨论 / 提问
+    url: https://github.com/OWNER/ReconifyX/discussions
+    about: 部署、用法与想法交流请走 Discussions；可复现的缺陷请改用 Bug 表单。

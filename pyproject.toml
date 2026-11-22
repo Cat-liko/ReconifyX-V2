@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reconifyx"
+version = "1.0.0"
+description = "Local attack surface management: subdomain discovery, HTTP liveness probing, TLS/security-header intel, SPF/DMARC audit and subdomain takeover detection."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "AGPL-3.0-or-later" }
+authors = [{ name = "ReconifyX contributors" }]
+keywords = [
+  "security",
+  "attack-surface-management",
+  "asm",
+  "recon",
+  "subdomain",
+  "subdomain-takeover",
+  "spf",
+  "dmarc",
+  "osint",
+  "bug-bounty",
+]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Console",
+  "Environment :: Web Environment",
+  "Framework :: FastAPI",
+  "Intended Audience :: Information Technology",
+  "Intended Audience :: System Administrators",
+  "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Security",
+  "Typing :: Typed",
+]
+dependencies = [
+  "fastapi>=0.110",
+  "uvicorn[standard]>=0.29",
+  "pydantic-settings>=2.2",
+  "httpx>=0.27",
+  "dnspython>=2.6",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "pytest-asyncio>=0.23",
+  "pyflakes>=3",
+  "ruff>=0.5",
+  "pyyaml>=6",
+  'tomli>=1.1; python_version < "3.11"',
+]
+
+[project.scripts]
+reconifyx = "reconifyx.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/OWNER/reconifyx"
+Documentation = "https://github.com/OWNER/reconifyx#readme"
+Issues = "https://github.com/OWNER/reconifyx/issues"
+Changelog = "https://github.com/OWNER/reconifyx/blob/main/CHANGELOG.md"
+
+[tool.setuptools]
+# `app` 是内部实现包(名字太通用,不适合作为分发名),`reconifyx` 只放命令行入口。
+packages = ["app", "app.core", "app.schemas", "app.services", "reconifyx"]
+
+[tool.setuptools.package-data]
+app = ["static/*"]
+
+[tool.setuptools.package-dir]
+app = "app"
+reconifyx = "reconifyx"

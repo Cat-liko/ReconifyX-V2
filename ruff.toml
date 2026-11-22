@@ -1,0 +1,32 @@
+# Ruff 配置 —— 只做 lint,formatter 保持默认设置。
+#
+# 规则集刻意选得**窄**:只保留"几乎不会误报、且真能抓出 bug"的几组
+#   E/W  空白与语法层面的问题(pyflakes 能力之外的部分)
+#   F    pyflakes:未使用的导入/变量、未定义名、f-string 缺占位符
+#   I    导入顺序(纯机械,不会改变语义)
+#
+# 刻意**没有**开启的:
+#   UP   会强制把 Optional[X] 改写成 X | None、typing.Dict 改写成 dict。
+#        那是一次覆盖全仓的机械改写,收益只是风格统一,却会让 review 无法聚焦
+#        在真实改动上。等某次专门的重构 PR 再做,而不是混在功能提交里。
+#   BLE  会禁止"broad except"。本项目的检测逻辑刻意用 `except Exception` 做单目标
+#        隔离(一个子域崩了不能拖垮整批扫描),开了会逼出大量 # noqa 噪音。
+#   S    bandit 规则集。本项目会主动发起网络请求、执行子进程式行为,误报很多。
+#
+# 自检:`ruff check .` 必须零输出。
+
+line-length = 100
+target-version = "py310"
+
+[lint]
+select = ["E", "W", "F", "I"]
+ignore = [
+    # 项目有大量中文注释,行长不受控,不做硬性限制。
+    "E501",
+    # E402:少数模块需要在 import 之前设置环境/路径(如 launcher 的延迟导入)
+    "E402",
+]
+
+[lint.per-file-ignores]
+# 测试里允许"导入后再 monkeypatch 模块"这类写法
+"tests/*" = ["E731"]

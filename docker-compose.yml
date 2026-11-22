@@ -1,0 +1,41 @@
+# ReconifyX 本地编排。
+#
+# 启动：docker compose up -d --build   → 打开 http://127.0.0.1:8000
+# 停止：docker compose down
+#
+# 设计约束：
+# - 容器内以非 root 用户 recon（uid 1000）运行，根文件系统只读；
+# - /data 挂到宿主 ./res 用于落盘扫描结果（RESULT_DIR=/data）；
+# - /tmp 用 tmpfs，HOME 也指向 /tmp，否则只读根文件系统下可能找不到可写的 HOME。
+
+services:
+  reconifyx:
+    build: .
+    image: reconifyx:local
+    container_name: reconifyx
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # 结果落盘目录（Dockerfile 已设，这里显式写一遍便于阅读）
+      RESULT_DIR: /data
+      # CertSpotter token，可选；留空走匿名配额（限额更低）
+      CERTSPOTTER_TOKEN: ${CERTSPOTTER_TOKEN:-}
+      # FOFA 中转站密码，可选；留空则该增强源自动禁用
+      FOFA_PASSWORD: ${FOFA_PASSWORD:-}
+      # 探活并发上限（默认 120），按机器与目标规模调整
+      PROBE_CONCURRENCY_CAP: ${PROBE_CONCURRENCY_CAP:-120}
+      # 只读根文件系统下，HOME 指向 tmpfs
+      HOME: /tmp
+    volumes:
+      # 扫描结果落盘。注意：Linux 宿主上容器内 uid 1000 需对该目录可写，
+      # 首次启动前可执行：mkdir -p res && sudo chown 1000:1000 res
+      - ./res:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    # 如需从 .env 批量注入其它配置，取消下面注释并准备好 .env 文件：
+    # env_file:
+    #   - .env

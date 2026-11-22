@@ -1,0 +1,90 @@
+name: 功能请求
+description: 提出新功能、能力增强或改进建议
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 提交前请先确认
+
+        - 已搜索[现有 Issue](https://github.com/OWNER/ReconifyX/issues) 与 Discussions，避免重复。
+        - 本项目的定位是**本地自部署的授权攻击面管理（ASM）**，不接收绕过授权、批量爆破、
+          漏洞利用一类的功能请求。
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 要解决的问题
+      description: 现在的痛点是什么？在什么场景下会卡住？
+      placeholder: "例如：Ultra 扫描完成后，我希望能直接导出 CSV，而不是只能看 JSON 文件。"
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 期望的方案
+      description: 你希望它怎么工作？涉及 API、配置项或 UI 时请尽量具体。
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 考虑过的替代方案
+      description: 现在是怎么绕过去的？有没有别的实现思路？
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 涉及模块
+      options:
+        - 子域名发现（Basic）
+        - HTTP 探活（Pro）
+        - 邮件安全审计 / SPF / DMARC（Pro）
+        - 子域名接管检测（Ultra）
+        - Web UI / API
+        - 配置 / 部署（Docker、打包）
+        - 文档 / CI / 工程化
+        - 其他
+    validations:
+      required: true
+
+  - type: dropdown
+    id: plan
+    attributes:
+      label: 相关计划
+      options:
+        - Basic
+        - Pro
+        - Ultra
+        - 与计划无关
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 完成标准
+      description: 怎样算这个功能做完了？可写成可验证的检查点。
+      placeholder: |
+        - 新增 GET /export 接口，返回 CSV
+        - 结果落盘时同时写 .csv
+        - 补上离线测试
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirms
+    attributes:
+      label: 确认事项
+      options:
+        - label: 该请求不涉及未授权扫描或漏洞利用能力
+          required: true
+        - label: 我愿意在有指引的情况下提交 PR
+          required: false
+    validations:
+      required: false

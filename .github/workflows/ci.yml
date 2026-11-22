@@ -1,0 +1,97 @@
+name: CI
+
+# 任意分支的 push + 所有 PR 都跑；测试本身全部离线，不需要外网。
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+# 同一分支重复推送时取消上一轮，省额度也避免旧结果覆盖新结果。
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# 默认最小权限：CI 只读代码。
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: lint (ruff + pyflakes + compileall)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dev dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+
+      # ruff 的规则集在 ruff.toml 里(刻意选窄:E/W/F/I)。它同时覆盖 pyflakes 的能力。
+      - name: ruff
+        run: python -m ruff check .
+
+      - name: pyflakes
+        run: python -m pyflakes app launcher.py reconifyx tests
+
+      - name: compileall
+        run: python -m compileall -q app reconifyx tests launcher.py
+
+  test:
+    name: test (${{ matrix.os }} / Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # 一个组合失败不要掐掉其它组合：Windows 与各 Python 版本的失败需要各自可见。
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.10", "3.11", "3.12", "3.13"]
+    env:
+      # 日志与断言里有中文：Windows 控制台默认 cp936/cp1252 会乱码甚至
+      # UnicodeEncodeError，统一强制 UTF-8。
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dev dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+
+      # 测试全部离线：httpx.ASGITransport 打 API + 本地 asyncio.start_server
+      # 模拟 HTTP 服务，不发真实外网请求。
+      - name: pytest
+        run: python -m pytest -q
+
+  frontend-syntax:
+    name: frontend syntax (node --check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # 前端目前是单文件 app/static/index.html；拆出 app.js 后这一步才生效，
+      # 未拆分时自动跳过而不是报“文件不存在”。
+      - name: node --check app/static/app.js
+        if: hashFiles('app/static/app.js') != ''
+        run: node --check app/static/app.js

@@ -1,0 +1,38 @@
+# 敏感配置(可能含 CertSpotter token / FOFA 密码 / API_KEY)—— 绝不入库
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# 缓存 / 临时
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.log
+
+# PyInstaller 构建产物(单文件 exe 20MB+,不入库)
+build/
+dist/
+*.spec.bak
+
+# 扫描结果输出(含真实测绘数据,不入库)
+res/
+
+# 扫描历史数据库(含目标域名与资产指纹,不入库)
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# 编辑器 / 系统
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

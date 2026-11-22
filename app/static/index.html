@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReconifyX · 攻击面管理</title>
+<meta name="color-scheme" content="dark light">
+<!-- 内联 SVG 图标文件:避免额外请求,也避免 /favicon.ico 404 噪音 -->
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="brand">
+      <h1>Reconify<span class="x">X</span></h1>
+      <span class="ver" id="ver"></span>
+    </div>
+    <div class="top-spacer"></div>
+    <p class="tagline">本地攻击面管理 · 发现 / 探活 / 邮件审计 / 接管检测</p>
+    <button class="ghost small" id="themeBtn" title="切换明暗主题">深色</button>
+  </header>
+
+  <section class="card">
+    <h2>扫描目标 <span class="hint" id="limits"></span></h2>
+
+    <div class="search">
+      <div class="grow">
+        <input type="text" id="domain" placeholder="example.com"
+               autocomplete="off" spellcheck="false" autocapitalize="off">
+      </div>
+      <div class="btns">
+        <button class="primary" id="goBtn">开始扫描</button>
+        <button id="cancelBtn" hidden>取消</button>
+      </div>
+    </div>
+
+    <textarea id="batchInput" hidden
+      placeholder="每行一个域名（最多 BATCH 个）&#10;example.com&#10;example.org"
+      spellcheck="false"></textarea>
+
+    <div class="mode-row">
+      <label class="check"><input type="checkbox" id="batchMode"> 批量模式</label>
+      <label class="check"><input type="checkbox" id="wantDiff" checked> 与上次对比</label>
+      <label class="check"><input type="checkbox" id="wantHistory"> 显示历史</label>
+      <div class="key-wrap" id="keyWrap" hidden>
+        <input type="password" id="apiKey" placeholder="X-API-Key（服务端已启用鉴权）"
+               autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+
+    <div class="plan-grid" id="plans"></div>
+  </section>
+
+  <div class="status" id="status"></div>
+  <div class="progress" id="progress" hidden><i></i></div>
+
+  <!-- 单域名结果 -->
+  <section class="card" id="resultCard" hidden>
+    <div class="metrics" id="metrics"></div>
+    <div class="badges" id="badges"></div>
+
+    <div class="toolbar export-bar" id="exportBar">
+      <span class="count" id="headline"></span>
+      <div class="grow"></div>
+      <button class="small" id="expJson">JSON</button>
+      <button class="small" id="expCsv">CSV</button>
+      <button class="small" id="expMd">Markdown</button>
+    </div>
+
+    <div class="tabs" id="tabs"></div>
+    <div id="panels"></div>
+  </section>
+
+  <!-- 批量结果 -->
+  <section class="card" id="batchCard" hidden>
+    <h2>批量结果 <span class="hint" id="batchHint"></span></h2>
+    <div id="batchBody"></div>
+  </section>
+
+  <p class="foot">
+    仅可用于你拥有所有权或已获书面授权的目标 ·
+    <a href="/docs" target="_blank" rel="noreferrer noopener">API 文档</a> ·
+    <a href="/metrics" target="_blank" rel="noreferrer noopener">指标</a>
+  </p>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="/app.js"></script>
+</body>
+</html>
